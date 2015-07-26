@@ -1,0 +1,54 @@
+package com.rusin.heable.net.api;
+
+import com.squareup.okhttp.OkHttpClient;
+
+import java.util.concurrent.TimeUnit;
+
+import retrofit.RestAdapter;
+import retrofit.android.AndroidLog;
+import retrofit.client.Client;
+import retrofit.client.OkClient;
+
+
+public class ApiFacade {
+    public final static String TAG = "NET_API";
+    private final static int TIMEOUT = 5000;
+    private final static String SEVER_URL = "http://apimobile.kupanda.ru/api";
+    private static ApiFacade instance;
+    private final boolean isSecure = true;
+    private IApi api;
+
+    private ApiFacade() {
+        api = getApiInterface(TIMEOUT, getApiEndpoint());
+    }
+
+    public static ApiFacade getInstance() {
+        if (instance == null) {
+            instance = new ApiFacade();
+        }
+
+        return instance;
+    }
+
+    private String getApiEndpoint() {
+        return SEVER_URL;
+    }
+
+    private Client getClient(final long timeout) {
+        final OkHttpClient client = new OkHttpClient();
+        client.setConnectTimeout(timeout, TimeUnit.MILLISECONDS);
+        client.setRetryOnConnectionFailure(true);
+
+        return new OkClient(client);
+    }
+
+    private IApi getApiInterface(final long timeout, final String endpointUrl) {
+        return new RestAdapter.Builder()
+                .setClient(getClient(timeout))
+                .setEndpoint(endpointUrl)
+                .setLogLevel(RestAdapter.LogLevel.FULL)
+                .setLog(new AndroidLog(TAG))
+                .build()
+                .create(IApi.class);
+    }
+}
